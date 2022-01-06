@@ -88,6 +88,7 @@ Laravel Article Job Request
 ### Request
 
 `POST /v1/article/:id/tag`
+- Form-data: `tag_name`
 
 ### Response
     {"success":"'Tag:Example was added to Example article"} or {"error": "Article not found"}
@@ -96,6 +97,7 @@ Laravel Article Job Request
 ### Request
 
 `DELETE /v1/article/:id/tag`
+- Form-data: `tag_name`
 
 ### Response
     {"success":"'Tag:Example was deleted from Example article"} or {"error": "Article not found"}
