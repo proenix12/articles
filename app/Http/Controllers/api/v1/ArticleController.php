@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\api\v1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\TagRequest;
 use App\Http\Requests\UpdateArticleRequest;
 use App\Models\Article;
 use Illuminate\Http\Request;
@@ -54,23 +55,25 @@ class ArticleController extends Controller
 
     }
 
-    public function articleTagAttach(Request $request, $id)
+    public function articleTagAttach(TagRequest $request, $id)
     {
         try {
+            $validated = $request->validated();
             $article = Article::findOrFail($id);
-            $article->tag($request->tag_name);
-            return response()->json(['success' => 'Tag:'. $request->tag_name .' was added to' . $article->title . 'article'], 200);
+            $article->tag($validated['tag_name']);
+            return response()->json(['success' => 'Tag:'. $validated['tag_name'] .' was added to' . $article->title . 'article'], 200);
         } catch (ModelNotFoundException $e) {
             return response()->json(['error' => 'Article not found'], 404);
         }
     }
 
-    public function articleTagUntag(Request $request, $id)
+    public function articleTagUntag(TagRequest $request, $id)
     {
         try {
+            $validated = $request->validated();
             $article = Article::findOrFail($id);
-            $article->untag($request->tag_name);
-            return response()->json(['success' => 'Tag:'. $request->tag_name .' was deleted from' . $article->title . 'article'], 200);
+            $article->untag($validated['tag_name']);
+            return response()->json(['success' => 'Tag:'. $validated['tag_name'] .' was deleted from ' . $article->title . ' article'], 200);
         } catch (ModelNotFoundException $e) {
             return response()->json(['error' => 'Article not found'], 404);
         }

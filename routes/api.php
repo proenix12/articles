@@ -27,4 +27,4 @@ Route::delete('/v1/article/{id}', [ArticleController::class, 'destroy']);
 
 //Article tag add/remove routes
 Route::post('/v1/article/{id}/tag', [ArticleController::class, 'articleTagAttach']);
-Route::delete('/v1/article/{id}/tag', [ArticleController::class, 'articleTagUntag']);
+Route::post('/v1/article/{id}/tag/delete', [ArticleController::class, 'articleTagUntag']);
