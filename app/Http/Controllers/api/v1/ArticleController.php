@@ -8,6 +8,7 @@ use App\Models\Article;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use App\Http\Requests\StoreArticleRequest;
+use \Illuminate\Database\Eloquent\ModelNotFoundException;
 use Validator;
 
 class ArticleController extends Controller
@@ -19,7 +20,7 @@ class ArticleController extends Controller
      */
     public function index()
     {
-        $articles = Article::all();
+        $articles = Article::with('tagged')->get();
         return response()->json($articles);
     }
 
@@ -53,14 +54,26 @@ class ArticleController extends Controller
 
     }
 
-    public function articleTagAttach(Request $request, $id){
-        $article = Article::findOrFail($id);
-        $article->tag($request->tag_name);
+    public function articleTagAttach(Request $request, $id)
+    {
+        try {
+            $article = Article::findOrFail($id);
+            $article->tag($request->tag_name);
+            return response()->json(['success' => 'Tag:'. $request->tag_name .' was added to' . $article->title . 'article'], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'Article not found'], 404);
+        }
     }
 
-    public function articleTagUntag(Request $request, $id){
-        $article = Article::findOrFail($id);
-        $article->untag($request->tag_name);
+    public function articleTagUntag(Request $request, $id)
+    {
+        try {
+            $article = Article::findOrFail($id);
+            $article->untag($request->tag_name);
+            return response()->json(['success' => 'Tag:'. $request->tag_name .' was deleted from' . $article->title . 'article'], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'Article not found'], 404);
+        }
     }
 
 
@@ -71,23 +84,29 @@ class ArticleController extends Controller
      */
     public function update(UpdateArticleRequest $request, $id)
     {
-        $validated = $request->validated();
+        try {
 
-        $article = Article::findOrFail($id);
-        if($request->has('file')){
-            $article->article_photo_path = $this->articleImage($validated['file']);
-        }
+            $validated = $request->validated();
 
-        $article->update($request->all());
+            $article = Article::findOrFail($id);
+            if ($request->has('file')) {
 
-        if ($request->has('tag_name')) {
-            $article->retag((array)$request->tag_name);
-        }
+                $article->article_photo_path = $this->articleImage($validated['file']);
+            }
 
-        if($article->save()){
-            return response()->json(['success' => 'Article ' . $article->title . ' was updated'], 200);
-        }else{
-            return response()->json(['error' => 'something went wrong try again'], 400);
+            $article->update($request->all());
+
+            if ($request->has('tag_name')) {
+                $article->retag((array)$request->tag_name);
+            }
+
+            if ($article->save()) {
+                return response()->json(['success' => 'Article ' . $article->title . ' was updated'], 200);
+            } else {
+                return response()->json(['error' => 'something went wrong try again'], 400);
+            }
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'Article not found'], 404);
         }
 
 
@@ -100,10 +119,14 @@ class ArticleController extends Controller
      */
     public function destroy($id): \Illuminate\Http\JsonResponse
     {
-        $article = Article::findOrFail($id);
-        unlink(public_path().$article->article_photo_path);
-        $article->delete();
-        return response()->json(['success' => 'Article ' . $article->title . ' was deleted']);
+        try {
+            $article = Article::findOrFail($id);
+            unlink(public_path() . $article->article_photo_path);
+            $article->delete();
+            return response()->json(['success' => 'Article ' . $article->title . ' was deleted']);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'Article not found'], 404);
+        }
 
     }
 
